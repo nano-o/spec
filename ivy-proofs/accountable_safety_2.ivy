@@ -49,4 +49,4 @@ isolate accountable_safety_2 = {
 
     invariant well_behaved(N) -> ~(abstract_accountable_safety_2.observed_equivocation(N) | abstract_accountable_safety_2.observed_unlawful_prevote(N))
 
-} with round, value, shim, abstract_accountable_safety_2, abstract_accountable_safety_2.defs.observed_equivocation_def, abstract_accountable_safety_2.defs.observed_unlawful_prevote_def
+} with round, value, gossip_layer, abstract_accountable_safety_2, abstract_accountable_safety_2.defs.observed_equivocation_def, abstract_accountable_safety_2.defs.observed_unlawful_prevote_def

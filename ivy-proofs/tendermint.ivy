@@ -9,7 +9,7 @@
 # <https://arxiv.org/abs/1807.04938>
 
 include domain_model
-include network_shim
+include gossip_layer
 
 # We model the Tendermint protocol as an Ivy object. Like in Object-Oriented
 # Programming, the basic structuring unit in Ivy is the object. Objects have
@@ -168,10 +168,10 @@ module tendermint(abstract_protocol) = {
             m.m_round := r;
             m.m_value := v;
             m.m_vround := vr;
-            call shim.broadcast(n,m);
+            call gossip_layer.send(n,m);
         }
 
-        implement shim.proposal_handler.handle(msg:msg) {
+        implement gossip_layer.proposal_handler.handle(msg:msg) {
             _recved_proposal(msg.m_src, msg.m_round, msg.m_value, msg.m_vround) := true;
         }
 
@@ -220,10 +220,10 @@ module tendermint(abstract_protocol) = {
             m.m_src := n;
             m.m_round := r;
             m.m_value := v;
-            call shim.broadcast(n,m);
+            call gossip_layer.send(n,m);
         }
 
-        implement shim.prevote_handler.handle(msg:msg) {
+        implement gossip_layer.prevote_handler.handle(msg:msg) {
             _recved_prevote(msg.m_src, msg.m_round, msg.m_value) := true;
         }
 
@@ -286,10 +286,10 @@ module tendermint(abstract_protocol) = {
             m.m_src := n;
             m.m_round := r;
             m.m_value := v;
-            call shim.broadcast(n,m);
+            call gossip_layer.send(n,m);
         }
 
-        implement shim.precommit_handler.handle(msg:msg) {
+        implement gossip_layer.precommit_handler.handle(msg:msg) {
             _recved_precommit(msg.m_src, msg.m_round, msg.m_value) := true;
         }
 
@@ -376,10 +376,10 @@ module tendermint(abstract_protocol) = {
 # messages on behalf of well-behaved nodes. In practice this is implemented
 # using cryptography (e.g. public-key cryptography).
 
-        export action byzantine_send(m:msg, dst:node) = {
+        export action byzantine_send(m:msg) = {
             require ~well_behaved(n);
             require ~well_behaved(m.m_src); # cannot forge the identity of well-behaved nodes
-            call shim.send(n,dst,m);
+            call gossip_layer.send(n,m);
         }
 
 # Byzantine nodes can also report fake observations, as defined in the abstract protocol.
@@ -402,9 +402,9 @@ module tendermint(abstract_protocol) = {
             invariant lockedRound ~= round.minus_one -> forall R,V . abstract_protocol.locked(n,R,V) <-> R <= lockedRound & lockedValue = V
             invariant lockedRound = round.minus_one -> forall R,V . ~abstract_protocol.locked(n,R,V)
 
-            invariant forall M:msg . well_behaved(M.m_src) & M.m_kind = msg_kind.prevote & shim.sent(M,N) -> abstract_protocol.prevoted(M.m_src,M.m_round,M.m_value)
+            invariant forall M:msg . well_behaved(M.m_src) & M.m_kind = msg_kind.prevote & gossip_layer.sent(M) -> abstract_protocol.prevoted(M.m_src,M.m_round,M.m_value)
             invariant well_behaved(N) & _recved_prevote(N,R,V) -> abstract_protocol.prevoted(N,R,V)
-            invariant forall M:msg . well_behaved(M.m_src) & M.m_kind = msg_kind.precommit & shim.sent(M,N) -> abstract_protocol.precommitted(M.m_src,M.m_round,M.m_value)
+            invariant forall M:msg . well_behaved(M.m_src) & M.m_kind = msg_kind.precommit & gossip_layer.sent(M) -> abstract_protocol.precommitted(M.m_src,M.m_round,M.m_value)
             invariant well_behaved(N) & _recved_precommit(N,R,V) -> abstract_protocol.precommitted(N,R,V)
 
             invariant (step = step_t.prevote | step = step_t.propose) -> ~abstract_protocol.precommitted(n,round_p,V)

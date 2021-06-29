@@ -1,0 +1,68 @@
+#lang ivy1.7
+# ---
+# layout: page
+# title: Model of the gossip layer
+# ---
+
+# Here we define a network module, which is our model of the network, and a
+# shim module that sits on top of the network and which, upon receiving a
+# message, calls the appropriate protocol handler.
+
+include domain_model
+
+# Here we define an enumeration type for identifying the 3 different types of
+# messages that nodes send.
+object msg_kind = { # TODO: merge with step_t
+    type this = {proposal, prevote, precommit}
+}
+
+# Here we define the type of messages `msg`. Its members are structs with the fields described below.
+object msg = {
+    type this = struct {
+        m_kind : msg_kind,
+        m_src  : node,
+        m_round : round,
+        m_value : value,
+        m_vround : round
+    }
+}
+
+# Here we define our model of the gossip layer. Because of gossiping, a message
+# that is sent can be delivered to anyone, i.e. it is not possible to send a
+# message only to a particular destination.
+
+trusted isolate gossip_layer = {
+
+    # We track which messages have been sent; because of gossip communication,
+    # any message delivered to a well-behaved node will eventually be relayed
+    # to all well-behaved nodes, and so we don't track who the message is sent
+    # to, essentially treating sending a message as broadcasting
+    relation sent(M:msg)
+
+    # In order not repeat the same code for each handler, we use a handler
+    # module parameterized by the type of message it will handle. Below we
+    # instantiate this module for the 3 types of messages of Tendermint
+    module handler(p_kind) = {
+        action handle(dst:node, m:msg)
+        object spec = {
+            before handle {
+                assert sent(m) & m.m_kind = p_kind
+            }
+        }
+    }
+
+    instance proposal_handler : handler(msg_kind.proposal)
+    instance prevote_handler : handler(msg_kind.prevote)
+    instance precommit_handler : handler(msg_kind.precommit)
+
+    action send(src:node,m:msg)
+
+    specification {
+        after init {
+            sent(M) := false;
+        }
+        before send {
+            sent(m) := true
+        }
+    }
+}

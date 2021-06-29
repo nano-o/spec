@@ -140,4 +140,4 @@ isolate accountable_safety_1 = {
 
     invariant [accountability] agreement | abstract_accountable_safety.accountability_violation
 
-} with value, round, proposers, shim, abstract_accountable_safety, abstract_accountable_safety.defs.agreement_def, accountable_safety_1.agreement_def
+} with value, round, proposers, gossip_layer, abstract_accountable_safety, abstract_accountable_safety.defs.agreement_def, accountable_safety_1.agreement_def

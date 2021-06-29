@@ -82,4 +82,4 @@ isolate classic_safety = {
     # then well-behaved nodes never disagree:
     invariant [classic_safety] classic_bft.quorum_intersection & server.decision(N1) ~= value.nil & server.decision(N2) ~= value.nil -> server.decision(N1) = server.decision(N2)
 
-} with value, round, proposers, shim, abstract_classic_safety # here we list all the specifications that we rely on for this proof
+} with value, round, proposers, gossip_layer, abstract_classic_safety # here we list all the specifications that we rely on for this proof
