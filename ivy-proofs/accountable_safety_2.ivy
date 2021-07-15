@@ -24,19 +24,21 @@ isolate abstract_accountable_safety_2 = {
 # the main property:
     invariant [wb_never_punished] well_behaved(N) -> ~(observed_equivocation(N) | observed_unlawful_prevote(N))
 
+    private {
 # the main invariant for proving wb_not_punished:
-    invariant well_behaved(N) & precommitted(N,R,V) & ~locked(N,R,V) & V ~= value.nil -> exists R2,V2 . V2 ~= value.nil & R < R2 & precommitted(N,R2,V2) & locked(N,R2,V2)
+        invariant well_behaved(N) & precommitted(N,R,V) & ~locked(N,R,V) & V ~= value.nil -> exists R2,V2 . V2 ~= value.nil & R < R2 & precommitted(N,R2,V2) & locked(N,R2,V2)
 
-    invariant (exists N . well_behaved(N) & precommitted(N,R,V) & V ~= value.nil) -> exists Q . nset.is_quorum(Q) & forall N . nset.member(N,Q) -> observed_prevoted(N,R,V)
+        invariant (exists N . well_behaved(N) & precommitted(N,R,V) & V ~= value.nil) -> exists Q . nset.is_quorum(Q) & forall N . nset.member(N,Q) -> observed_prevoted(N,R,V)
 
-    invariant well_behaved(N) -> (observed_prevoted(N,R,V) <-> prevoted(N,R,V))
-    invariant well_behaved(N) -> (observed_precommitted(N,R,V) <-> precommitted(N,R,V))
+        invariant well_behaved(N) -> (observed_prevoted(N,R,V) <-> prevoted(N,R,V))
+        invariant well_behaved(N) -> (observed_precommitted(N,R,V) <-> precommitted(N,R,V))
 
 # nodes stop prevoting or precommitting in lower rounds when doing so in a higher round:
-    invariant well_behaved(N) & prevoted(N,R2,V2) & R1 < R2 -> left_round(N,R1)
-    invariant well_behaved(N) & locked(N,R2,V2) & R1 < R2 -> left_round(N,R1)
+        invariant well_behaved(N) & prevoted(N,R2,V2) & R1 < R2 -> left_round(N,R1)
+        invariant well_behaved(N) & locked(N,R2,V2) & R1 < R2 -> left_round(N,R1)
 
-    invariant [precommit_unique_per_round] well_behaved(N) & precommitted(N,R,V1) & precommitted(N,R,V2) -> V1 = V2
+        invariant [precommit_unique_per_round] well_behaved(N) & precommitted(N,R,V1) & precommitted(N,R,V2) -> V1 = V2
+    }
 
 } with nset, round, abstract_accountable_safety_2.defs.observed_equivocation_def, abstract_accountable_safety_2.defs.observed_unlawful_prevote_def
 
