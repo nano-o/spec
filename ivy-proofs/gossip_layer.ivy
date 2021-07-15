@@ -12,7 +12,7 @@ include domain_model
 
 # Here we define an enumeration type for identifying the 3 different types of
 # messages that nodes send.
-object msg_kind = { # TODO: merge with step_t
+object msg_kind = {
     type this = {proposal, prevote, precommit}
 }
 
